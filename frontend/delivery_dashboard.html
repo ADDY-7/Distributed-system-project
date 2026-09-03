@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Dashboard — Smart Order Allocation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="mark">quick<span>dash</span></div>
+    <div class="route">delivery — fed by store nodes over WebRTC DataChannel</div>
+  </div>
+
+  <div class="wrap wide">
+    <h1>Incoming deliveries</h1>
+    <p class="lede">Every row here arrived straight from a store node's Python process over a peer-to-peer WebRTC DataChannel (aiortc) — not through a shared database.</p>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr><th>Order</th><th>Store</th><th>Customer</th><th>Item</th><th>Qty</th><th>Address</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty-note">No deliveries yet — place an order on the customer page.</div>
+    </div>
+  </div>
+
+<script>
+const DELIVERY_URL = "http://localhost:8005";
+
+async function refresh() {
+  try {
+    const res = await fetch(`${DELIVERY_URL}/deliveries`);
+    const rows = await res.json();
+    const tbody = document.getElementById("rows");
+    const empty = document.getElementById("empty-note");
+
+    if (rows.length === 0) {
+      tbody.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.order_id}</td>
+        <td>${r.store_id}</td>
+        <td>${r.customer_name}</td>
+        <td>${r.item}</td>
+        <td>${r.qty}</td>
+        <td>${r.address}</td>
+        <td>${r.status === "delivered"
+              ? '<span class="pill teal">delivered</span>'
+              : '<span class="pill amber">awaiting pickup</span>'}</td>
+        <td>${r.status === "delivered" ? "" :
+              `<button style="margin:0;width:auto;padding:6px 10px;font-size:0.78rem"
+                       onclick="markDone('${r.delivery_record_id}')">Mark delivered</button>`}</td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    document.getElementById("empty-note").style.display = "block";
+    document.getElementById("empty-note").textContent = `could not reach ${DELIVERY_URL} — is the delivery service running?`;
+  }
+}
+
+async function markDone(id) {
+  await fetch(`${DELIVERY_URL}/deliveries/${id}/complete`, { method: "POST" });
+  refresh();
+}
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

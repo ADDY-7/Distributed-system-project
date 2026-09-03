@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer — Smart Order Allocation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="mark">quick<span>dash</span></div>
+    <div class="route">customer → middleware → store → delivery</div>
+  </div>
+
+  <div class="wrap">
+    <h1>Place an order</h1>
+    <p class="lede">The middleware will check live inventory and workload across every store node and route this to whichever one can fulfil it fastest.</p>
+
+    <div class="panel">
+      <form id="order-form">
+        <label for="name">Your name</label>
+        <input id="name" required placeholder="e.g. Aarav Shah">
+
+        <label for="item">Item</label>
+        <select id="item">
+          <option value="milk">Milk</option>
+          <option value="bread">Bread</option>
+          <option value="eggs">Eggs</option>
+          <option value="rice">Rice</option>
+        </select>
+
+        <label for="qty">Quantity</label>
+        <input id="qty" type="number" min="1" value="2" required>
+
+        <label for="address">Delivery address</label>
+        <input id="address" required placeholder="e.g. 12 MG Road, Pune">
+
+        <button type="submit" id="submit-btn">Place order</button>
+      </form>
+
+      <div id="result" style="display:none"></div>
+    </div>
+
+    <p class="small">Middleware endpoint: <code>http://localhost:8000/order</code>. Change <code>MIDDLEWARE_URL</code> at the top of this page's script if you're running services on different hosts/ports.</p>
+  </div>
+
+<script>
+const MIDDLEWARE_URL = "http://localhost:8000";
+
+const form = document.getElementById("order-form");
+const resultBox = document.getElementById("result");
+const btn = document.getElementById("submit-btn");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  btn.disabled = true;
+  btn.textContent = "Routing order...";
+  resultBox.style.display = "none";
+
+  const payload = {
+    customer_name: document.getElementById("name").value,
+    item: document.getElementById("item").value,
+    qty: parseInt(document.getElementById("qty").value, 10),
+    address: document.getElementById("address").value,
+  };
+
+  try {
+    const res = await fetch(`${MIDDLEWARE_URL}/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    resultBox.style.display = "block";
+    if (res.ok) {
+      resultBox.className = "result ok";
+      const workload = Object.entries(data.store_workload_snapshot || {})
+        .map(([sid, w]) => `${sid}:${w}`).join("  ");
+      resultBox.textContent =
+`order_id       ${data.order_id}
+assigned_store ${data.assigned_store}
+status         ${data.status}
+message        ${data.message}
+workload_now   ${workload}`;
+    } else {
+      resultBox.className = "result err";
+      resultBox.textContent = `order rejected\n${data.detail}`;
+    }
+  } catch (err) {
+    resultBox.style.display = "block";
+    resultBox.className = "result err";
+    resultBox.textContent = `could not reach middleware at ${MIDDLEWARE_URL}\n${err}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Place order";
+  }
+});
+</script>
+</body>
+</html>

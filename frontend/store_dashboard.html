@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Store Dashboard — Smart Order Allocation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="mark">quick<span>dash</span></div>
+    <div class="route" id="route-label">store node</div>
+  </div>
+
+  <div class="wrap">
+    <div style="margin-bottom:18px">
+      <a class="tab" href="store_dashboard.html?store=A&port=8001">Store A</a>
+      <a class="tab" href="store_dashboard.html?store=B&port=8002">Store B</a>
+      <a class="tab" href="store_dashboard.html?store=C&port=8003">Store C</a>
+      <a class="tab" href="store_dashboard.html?store=D&port=8004">Store D</a>
+    </div>
+
+    <h1 id="store-title">Store</h1>
+    <p class="lede">Polls this node's own <code>/status</code> endpoint every 2s. This is exactly what the Middleware sees before it decides where to send the next order.</p>
+
+    <div class="panel">
+      <label>Current workload</label>
+      <div class="gauge-row">
+        <div class="gauge-track"><div class="gauge-fill" id="workload-fill" style="width:0%"></div></div>
+        <div class="gauge-label" id="workload-label">0/0</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <label style="margin-top:0">Inventory</label>
+      <table id="inventory-table">
+        <thead><tr><th>Item</th><th>Stock</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <p class="small" id="conn-note"></p>
+  </div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const storeId = params.get("store") || "A";
+const port = params.get("port") || "8001";
+const STORE_URL = `http://localhost:${port}`;
+
+document.getElementById("route-label").textContent = `store node ${storeId}`;
+document.getElementById("store-title").textContent = `Store ${storeId}`;
+
+async function refresh() {
+  const noteEl = document.getElementById("conn-note");
+  try {
+    const res = await fetch(`${STORE_URL}/status`);
+    const s = await res.json();
+
+    document.getElementById("store-title").textContent = s.store_name || `Store ${storeId}`;
+
+    const pct = s.max_capacity ? Math.min(100, Math.round((s.workload / s.max_capacity) * 100)) : 0;
+    const fill = document.getElementById("workload-fill");
+    fill.style.width = pct + "%";
+    fill.className = "gauge-fill" + (pct >= 80 ? " hot" : "");
+    document.getElementById("workload-label").textContent = `${s.workload}/${s.max_capacity}`;
+
+    const tbody = document.querySelector("#inventory-table tbody");
+    tbody.innerHTML = "";
+    Object.entries(s.inventory).forEach(([item, stock]) => {
+      const tr = document.createElement("tr");
+      const low = stock <= 5;
+      tr.innerHTML = `<td>${item}</td><td>${stock} ${low ? '<span class="pill amber">low</span>' : ''}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    noteEl.textContent = `connected to ${STORE_URL} — refreshed ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    noteEl.textContent = `could not reach ${STORE_URL} — is the store node running?`;
+  }
+}
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

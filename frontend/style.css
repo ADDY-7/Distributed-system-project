@@ -1,0 +1,133 @@
+/* Dispatch-board theme: dark ops console, amber = in-motion, teal = settled/delivered.
+   Space Grotesk for headings (short, blocky, feels like signage), JetBrains Mono
+   for anything that is actually data (ids, counts, timestamps). */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root{
+  --bg: #11131A;
+  --panel: #171A24;
+  --panel-line: #262A38;
+  --ink: #E8E9EE;
+  --ink-dim: #8B90A3;
+  --amber: #FFB020;
+  --teal: #2AD9B8;
+  --red: #FF6B6B;
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  margin:0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.topbar{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--panel-line);
+}
+
+.topbar .mark{ font-weight:700; font-size: 1.15rem; letter-spacing: 0.2px; }
+.topbar .mark span{ color: var(--amber); }
+.topbar .route{ color: var(--ink-dim); font-family:'JetBrains Mono', monospace; font-size: 0.82rem; }
+
+.wrap{
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 36px 24px 64px;
+}
+
+.wrap.wide{ max-width: 1080px; }
+
+h1{ font-size: 1.6rem; font-weight:700; margin: 0 0 6px; }
+p.lede{ color: var(--ink-dim); margin: 0 0 28px; max-width: 60ch; line-height:1.5; }
+
+.panel{
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+label{ display:block; font-size:0.85rem; color: var(--ink-dim); margin: 14px 0 6px; }
+label:first-child{ margin-top:0; }
+
+input, select{
+  width:100%;
+  background: #0D0F16;
+  border: 1px solid var(--panel-line);
+  color: var(--ink);
+  padding: 11px 12px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+input:focus, select:focus{ outline: none; border-color: var(--amber); }
+
+button{
+  margin-top: 20px;
+  width: 100%;
+  background: var(--amber);
+  color: #1a1200;
+  border: none;
+  padding: 13px 16px;
+  border-radius: 7px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.98rem;
+  cursor: pointer;
+}
+button:hover{ filter: brightness(1.08); }
+button:disabled{ opacity: 0.5; cursor: wait; }
+
+.result{
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.result.ok{ border-color: var(--teal); }
+.result.err{ border-color: var(--red); color: #ffd6d6; }
+
+.pill{
+  display:inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-family:'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.pill.amber{ background: rgba(255,176,32,0.14); color: var(--amber); }
+.pill.teal{ background: rgba(42,217,184,0.14); color: var(--teal); }
+.pill.dim{ background: rgba(139,144,163,0.14); color: var(--ink-dim); }
+
+table{ width:100%; border-collapse: collapse; font-family:'JetBrains Mono', monospace; font-size: 0.85rem; }
+th, td{ text-align:left; padding: 10px 8px; border-bottom: 1px solid var(--panel-line); }
+th{ color: var(--ink-dim); font-weight:600; font-size: 0.75rem; text-transform: none; }
+
+.gauge-row{ display:flex; align-items:center; gap: 10px; margin: 8px 0; }
+.gauge-track{ flex:1; height: 8px; background:#0D0F16; border-radius: 100px; overflow:hidden; }
+.gauge-fill{ height:100%; background: var(--amber); border-radius:100px; transition: width 0.4s ease; }
+.gauge-fill.hot{ background: var(--red); }
+.gauge-label{ font-family:'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--ink-dim); width: 54px; text-align:right; }
+
+.grid4{ display:grid; grid-template-columns: repeat(4,1fr); gap:14px; }
+@media (max-width: 720px){ .grid4{ grid-template-columns: repeat(2,1fr); } }
+
+a.tab{ color: var(--ink-dim); text-decoration:none; font-size:0.82rem; margin-right:16px; }
+a.tab.active{ color: var(--amber); }
+
+.empty{ color: var(--ink-dim); font-style: italic; padding: 20px 0; text-align:center; }
+
+.small{ font-size:0.78rem; color: var(--ink-dim); }
